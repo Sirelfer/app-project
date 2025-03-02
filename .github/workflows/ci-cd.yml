@@ -26,6 +26,7 @@ jobs:
 
     - name: Run tests
       run: |
+        export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE
         pytest tests/  # Ejecuta los tests en la carpeta tests/
 
   build-and-push:
@@ -47,18 +48,3 @@ jobs:
 
     - name: Push Docker image
       run: docker push elfer/app-image:latest
-
-  deploy:
-    needs: build-and-push  # Este job depende del job "build-and-push"
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Deploy to Kubernetes (Ejemplo)
-      run: |
-        # Aquí puedes agregar los comandos para desplegar en Kubernetes, ECS, etc.
-        # Por ejemplo:
-        echo "Desplegando la aplicación..."
-        kubectl apply -f deployment.yaml
