@@ -23,6 +23,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest  # Instala pytest para ejecutar tests
+    
+    - name: Install bandit
+      run: |
+         python -m pip install -upgrade pip
+         pip install bandit
+
+    - name: Run bandit
+      run: |
+        bandit -r .
 
     - name: Run tests
       run: |

@@ -1,2 +1,3 @@
 flask
 pytest  # Para ejecutar tests
+bandit
