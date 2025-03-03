@@ -6,57 +6,90 @@ on:
       - main  # Ejecuta el pipeline cuando hay un push a la rama main
 
 jobs:
+  security-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Bandit (Análisis de seguridad del código)
+        run: |
+          pip install bandit
+          bandit -r app/
+
+      - name: Check dependencies with Safety
+        run: |
+          pip install safety
+          safety check --full-report
+
+      - name: Scan for secrets with Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml  # Configuración opcional
+
   test:
+    needs: security-checks  # No ejecuta tests si falla la seguridad
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest  # Instala pytest para ejecutar tests
-    - name: Run tests
-      run: |
-        pytest tests/  # Ejecuta los tests en la carpeta tests/
-    
-    #- name: SET PYTHONPATH
-    # run: |
-     #   echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov  # Instalar pytest con cobertura
 
-    #- name: Install bandit
-     # run: |
-      #   python -m pip install --upgrade pip  # Corregido
-       #  pip install bandit
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=app --cov-report=xml tests/
 
-    #- name: Run bandit
-     # run: |
-      #  bandit -r .
-    
-    
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v2
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: true
+
   build-and-push:
-    needs: test  # Este job depende del job "test"
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-    - name: Build Docker image
-      run: docker build -t elfer/app-image:latest -f Dockerfile.app .
+      - name: Build Docker image
+        run: docker build -t elfer/app-image:latest -f Dockerfile.app .
 
-    - name: Push Docker image
-      run: docker push elfer/app-image:latest
+      - name: Scan Docker image for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'elfer/app-image:latest'
+          exit-code: 1
+          ignore-unfixed: true
+
+      - name: Push Docker image
+        run: docker push elfer/app-image:latest
