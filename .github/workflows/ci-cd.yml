@@ -32,10 +32,13 @@ jobs:
     - name: Run bandit
       run: |
         bandit -r .
+    
+    - name: SET PYTHONPATH
+      run: |
+        echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
     - name: Run tests
       run: |
-        export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE
         pytest tests/  # Ejecuta los tests en la carpeta tests/
 
   build-and-push:

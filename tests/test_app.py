@@ -2,7 +2,7 @@ import sys
 import os
 
 # Agrega la ruta del proyecto al PYTHONPATH
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Importa la aplicación Flask
 from app import app
@@ -27,3 +27,7 @@ def test_hello_name_invalid():
     response = client.get('/hello/Fer123')
     assert response.status_code == 400
     assert b"El nombre solo puede contener letras." in response.data
+
+
+
+     
