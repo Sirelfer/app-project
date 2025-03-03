@@ -27,7 +27,3 @@ def test_hello_name_invalid():
     response = client.get('/hello/Fer123')
     assert response.status_code == 400
     assert b"El nombre solo puede contener letras." in response.data
-
-
-
-     
