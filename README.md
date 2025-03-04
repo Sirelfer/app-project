@@ -32,7 +32,7 @@ cd app
 ### 2. Install Dependencies
 
 ```bash
-Copy
+
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 
@@ -100,6 +100,7 @@ requirements.txt
 ```
 
 Code Overview
+
 app.py
 
 ```bash
@@ -158,20 +159,11 @@ def test_hello_name_invalid():
 Secrets and Tokens
 Secrets are managed using GitHub Secrets. Ensure the following secrets are configured in your repository:
 
-DOCKER_HUB_USERNAME
+*DOCKER_HUB_USERNAME
 
-DOCKER_HUB_TOKEN
+*DOCKER_HUB_TOKEN
 
-CODECOV_TOKEN
-
-Contributing
-Contributions are welcome! Please follow these steps:
-
-Fork the repository.
-
-Create a new branch for your feature or bugfix.
-
-Submit a pull request with a detailed description of your changes.
+*CODECOV_TOKEN
 
 License
 This project is licensed under the MIT License. See the LICENSE file for details.
