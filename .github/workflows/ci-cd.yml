@@ -89,8 +89,8 @@
               name: zap-report
               path: zap-report.html
     
-        - name: Stop app container
-          run: docker stop app-container
+        ##- name: Stop app container
+        ##  run: docker stop app-container
   
         # 7. Subir la imagen a Docker Hub
         - name: Push Docker image (if on main branch)
