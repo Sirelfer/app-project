@@ -84,9 +84,9 @@
         - name: Wait for application to start
           run: sleep 10  # Ajusta el tiempo según sea necesario
 
-        - name: Copy YAML file to workspace
-          run: |
-            cp zap.yaml $(pwd)/zap.yaml
+       # - name: Copy YAML file to workspace
+        #  run: |
+         #   cp zap.yaml $(pwd)/zap.yaml
   
         - name: Test volume mapping
           run: |
