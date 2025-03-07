@@ -76,10 +76,13 @@
             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
             trivy image --severity HIGH,CRITICAL app-image:latest
         
-        # 5. Iniciar la aplicación
+        # 5. Iniciar la aplicación y permisos
 
         - name: Start the application
           run: docker run -d -p 8080:5000 --name app-container app-image:latest
+        
+        - name: Set permissions for zap-wrk
+          run: mkdir -p zap-wrk && chmod -R 777 zap-wrk
 
         # 6. Escaneo DAST con OWASP ZAP
 
