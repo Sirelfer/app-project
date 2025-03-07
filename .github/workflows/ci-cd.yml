@@ -83,7 +83,11 @@
         
         - name: Wait for application to start
           run: sleep 10  # Ajusta el tiempo según sea necesario
-        
+        - name: Set permissions for workspace
+          run: |
+           sudo chown -R $USER:$USER $(pwd)
+           sudo chmod -R 777 $(pwd)
+           
         - name: Test volume mapping
           run: |
             docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest touch /zap/wrk/test.txt
