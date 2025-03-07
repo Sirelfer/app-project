@@ -136,13 +136,13 @@ The pipeline is defined in .github/workflows/ci-cd.yml and includes the followin
 
 ## How to Interpret Results
 
-    * Bandit: If issues are found, the pipeline will fail, and a detailed report will be available in the logs.
+* Bandit: If issues are found, the pipeline will fail, and a detailed report will be available in the logs.
 
-    * Safety: If insecure dependencies are detected, the pipeline will fail, and a report will be generated.
+* Safety: If insecure dependencies are detected, the pipeline will fail, and a report will be generated.
 
-    * Gitleaks: If secrets are detected, the pipeline will fail, and a report will be generated.
+* Gitleaks: If secrets are detected, the pipeline will fail, and a report will be generated.
 
-    * Trivy: If vulnerabilities are found, the pipeline will fail, and a detailed report will be available.
+* Trivy: If vulnerabilities are found, the pipeline will fail, and a detailed report will be available.
 
 ## Project Structure
 
