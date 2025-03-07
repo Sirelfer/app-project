@@ -82,7 +82,7 @@
           run: docker run -d -p 8080:5000 --name app-container app-image:latest
         
         - name: Wait for application to start
-          run: sleep 10  # Ajusta el tiempo según sea necesario
+          run: sleep 30  # Ajusta el tiempo según sea necesario
         
         - name: Debug workspace
           run: |
@@ -98,8 +98,8 @@
 
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
-              docker run --network host -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r $(pwd)/zap-report.html || true
-              
+            docker run --network host -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html || true
+
         - name: Verify report generation
           run: |
            ls -l $(pwd)/zap-report.html
