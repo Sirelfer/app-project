@@ -79,8 +79,8 @@
         # 5. OWASP ZAP Scan (DAST)    
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
-              docker run --network host -t owasp/zap2docker-stable zap-baseline.py \
-                -t http://localhost:8080 -r zap-report.html || true # "|| true" evita fallo si hay alertas
+              docker run --network host -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r zap-report.html || true 
+          # "|| true" evita fallo si hay alertas
         
         # 6. Upload report
         - name: Upload ZAP report
@@ -89,8 +89,8 @@
               name: zap-report
               path: zap-report.html
     
-        ##- name: Stop app container
-        ##  run: docker stop app-container
+        - name: Stop app container
+          run: docker stop app-container
   
         # 7. Subir la imagen a Docker Hub
         - name: Push Docker image (if on main branch)
