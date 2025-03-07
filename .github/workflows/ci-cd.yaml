@@ -91,8 +91,8 @@
 
         - name: Copy YAML file to workspace
           run: |
-             cp zap.yaml $(pwd)/zap.yaml
-             
+             cp path/to/zap.yaml $(pwd)/zap.yaml
+
         - name: Test volume mapping
           run: |
              docker run -v $(pwd):/zap/wrk/:rw --user $(id -u):$(id -g) -t ghcr.io/zaproxy/zaproxy:latest touch /zap/wrk/test.txt
