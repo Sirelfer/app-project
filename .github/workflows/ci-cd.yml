@@ -84,10 +84,12 @@
         - name: Wait for application to start
           run: sleep 10  # Ajusta el tiempo según sea necesario
         
-        - name: Verify permissions
+        - name: Debug workspace
           run: |
+            echo "Current directory: $(pwd)"
             ls -ld $(pwd)
             ls -l $(pwd)
+        
         
         - name: Set permissions for zap-wrk
           run: chmod -R 777 $(pwd)
@@ -97,7 +99,10 @@
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
               docker run --network host -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r $(pwd)/zap-report.html || true
-
+              
+        - name: Verify report generation
+          run: |
+           ls -l $(pwd)/zap-report.html
         # 7. Upload report
 
         - name: Upload ZAP report
