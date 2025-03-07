@@ -5,7 +5,9 @@
 ![Badge](https://img.shields.io/badge/Docker-Supported-blue)
 ![Badge](https://img.shields.io/badge/Secure-With%20Trivy%20&%20Bandit-brightgreen)
 
-This is a simple Flask application that demonstrates basic functionality while emphasizing **security best practices**. The app includes:
+This project is a **Python application** that uses the secure base Docker image provided by the [base project](https://github.com/yourusername/base-project). It is designed with a focus on **security**, **efficiency**, and **DevSecOps best practices**
+
+This application demonstrates basic functionality while emphasizing **security best practices**. The app includes:
 - A root route (`/`) that returns "Hello, world!".
 - A dynamic route (`/hello/<name>`) that greets the user by name, with input validation to ensure the name contains only letters.
 
@@ -30,6 +32,7 @@ The project is built with a **CI/CD pipeline** that integrates security tools li
 ## Description
 
 This is a **simple Flask application** designed to demonstrate **security best practices** in a Python web application. The app includes:
+
 
 - **Input Validation**: Ensures that user input is safe and meets expected criteria.
 - **Security Scanning**: Integrates multiple security tools to detect vulnerabilities in code, dependencies, and secrets.
