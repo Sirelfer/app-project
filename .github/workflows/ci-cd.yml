@@ -83,21 +83,22 @@
         
         - name: Wait for application to start
           run: sleep 10  # Ajusta el tiempo según sea necesario
+
         - name: Set permissions for workspace
           run: |
            sudo chown -R $USER:$USER $(pwd)
            sudo chmod -R 777 $(pwd)
-           
+
         - name: Test volume mapping
           run: |
-            docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest touch /zap/wrk/test.txt
-            ls -l $(pwd)/test.txt
+             docker run -v $(pwd):/zap/wrk/:rw --user $(id -u):$(id -g) -t ghcr.io/zaproxy/zaproxy:latest touch /zap/wrk/test.txt
+             ls -l $(pwd)/test.txt
 
         # 6. Escaneo DAST con OWASP ZAP
 
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
-            docker run --network host -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html || true
+            docker run --network host -v $(pwd):/zap/wrk/:rw --user $(id-u):$(id -g) -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html || true
 
         - name: Verify report generation
           run: |
