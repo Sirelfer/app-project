@@ -76,23 +76,30 @@
             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
             trivy image --severity HIGH,CRITICAL app-image:latest
         
-        # 5. OWASP ZAP Scan (DAST)    
+        # 5. Iniciar la aplicación
+
+        - name: Start the application
+          run: docker run -d -p 8080:5000 --name app-container app-image:latest
+
+        # 6. Escaneo DAST con OWASP ZAP
+
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
-              docker run --network host -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r zap-report.html || true 
-          # "|| true" evita fallo si hay alertas
-        
-        # 6. Upload report
+            docker run --network host -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html || true
+
+        # 7. Upload report
+
         - name: Upload ZAP report
           uses: actions/upload-artifact@v4
           with:
               name: zap-report
               path: zap-report.html
-    
-        ##- name: Stop app container
-        ## run: docker stop app-container
+       
+         # 8. Stop container 
+        - name: Stop app container
+          run: docker stop app-container
   
-        # 7. Subir la imagen a Docker Hub
+        # 9. Push image to docker
         - name: Push Docker image (if on main branch)
           if: github.ref == 'refs/heads/main'
           run: |
