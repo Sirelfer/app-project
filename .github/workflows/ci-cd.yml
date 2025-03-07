@@ -98,8 +98,12 @@
 
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
-            docker run --network host -v $(pwd):/zap/wrk/:rw --user $(id -u):$(id -g) -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html || true
-
+            docker run --network host -v $(pwd):/zap/wrk/:rw --user $(id -u):$(id -g) -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html -c /zap/wrk/zap.yaml || true || true
+        
+        - name: Verify YAML file creation
+          run: |
+           ls -l $(pwd)/zap.yaml
+    
         - name: Verify report generation
           run: |
            ls -l $(pwd)/zap-report.html
