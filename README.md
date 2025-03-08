@@ -228,7 +228,7 @@ Secrets are managed using GitHub Secrets. Ensure the following secrets are confi
 * CODECOV_TOKEN
 
 License
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the LICENSE file for details. 
 
 
 
