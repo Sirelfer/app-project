@@ -92,7 +92,7 @@
           run: |
            chmod -R 777 $(pwd)
         
-        - name: Verify zap.yaml exists
+        - name: Verify zap.conf exists
           run: |
            ls -l $(pwd)/zap.conf || echo "zap.conf not found!"
         
@@ -100,12 +100,12 @@
           run: |
            docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest touch /zap/wrk/test.txt || echo "Touch failed!"
            ls -l $(pwd)/test.txt || echo "Test file not created!"
-  
+           
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
-            docker run --network host -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html -c /zap/wrk/zap.yaml || true
-        
-        - name: Verify YAML file
+            docker run --network host -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html -c /zap/wrk/zap.conf || true
+            
+        - name: Verify conf file
           run: |
            ls -l $(pwd)/zap.conf || echo "zap.conf missing after ZAP!"        
 
