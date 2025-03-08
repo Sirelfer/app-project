@@ -1,0 +1,4 @@
+spider:
+  maxDuration: 1  # Máximo 1 minuto para el spider
+scanner:
+  maxDuration: 5  # Máximo 5 minutos para el escaneo activo
