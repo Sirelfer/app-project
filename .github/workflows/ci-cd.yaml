@@ -87,11 +87,7 @@
         - name: Set permissions for workspace
           run: |
             chmod -R 777 $(pwd)
-       
-        - name: Copy YAML file to workspace
-          run: |
-            cp zap.yaml $(pwd)/zap.yaml
-  
+     
         - name: Test volume mapping
           run: |
             docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest touch /zap/wrk/test.txt
@@ -102,14 +98,6 @@
             docker run --network host -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py \
               -t http://localhost:8080 -r /zap/wrk/zap-report.html -c /zap/wrk/zap.yaml || true
   
-        - name: Verify YAML file creation
-          run: |
-            ls -l $(pwd)/zap.yaml
-  
-        - name: Verify report generation
-          run: |
-            ls -l $(pwd)/zap-report.html
-
         # 7. Upload report
 
         - name: Upload ZAP report

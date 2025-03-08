@@ -1,7 +1,0 @@
-jobs:
-  - name: baseline-scan
-    type: baseline
-    parameters:
-      target: http://localhost:8080
-      reportFile: /zap/wrk/zap-report.html
-      reportFormat: html
