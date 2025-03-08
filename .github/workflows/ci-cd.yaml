@@ -94,7 +94,7 @@
         
         - name: Verify zap.yaml exists
           run: |
-           ls -l $(pwd)/zap.yaml || echo "zap.yaml not found!"
+           ls -l $(pwd)/zap.conf || echo "zap.conf not found!"
         
         - name: Test volume mapping
           run: |
@@ -108,7 +108,7 @@
         - name: Verify YAML file
           run: |
            ls -l $(pwd)/zap.conf || echo "zap.conf missing after ZAP!"        
-           
+
         - name: Verify report generation
           run: |
            ls -l $(pwd)/zap-report.html || echo "Report not generated!"   
