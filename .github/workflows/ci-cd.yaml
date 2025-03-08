@@ -86,19 +86,20 @@
         
         - name: Check if app is responding
           run: |
-            curl http://localhost:8080 || echo "App not responding!"
+           curl http://localhost:8080 || echo "App not responding!"
         
         - name: Set permissions for workspace
           run: |
-            chmod -R 777 $(pwd)
+           chmod -R 777 $(pwd)
         
         - name: Verify zap.yaml exists
           run: |
-            ls -l $(pwd)/zap.yaml || echo "zap.yaml not found!"
+           ls -l $(pwd)/zap.yaml || echo "zap.yaml not found!"
         
         - name: Test volume mapping
           run: |
-            docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest touch /zap/wrk/test.txt ls -l $(pwd)/test.txt || echo "Volume mapping failed!"
+           docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest touch /zap/wrk/test.txt || echo "Touch failed!"
+           ls -l $(pwd)/test.txt || echo "Test file not created!"
   
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
@@ -106,8 +107,8 @@
         
         - name: Verify YAML file
           run: |
-           ls -l $(pwd)/zap.yaml || echo "zap.yaml missing after ZAP!"
-        
+           ls -l $(pwd)/zap.conf || echo "zap.conf missing after ZAP!"        
+           
         - name: Verify report generation
           run: |
            ls -l $(pwd)/zap-report.html || echo "Report not generated!"   
