@@ -84,6 +84,17 @@
         - name: Wait for application to start
           run: sleep 10  # Ajusta el tiempo según sea necesario
         
+        - name: Run Semgrep
+          run: |
+             python -m pip install semgrep
+             semgrep --config=p/default --sarif --output=semgrep-results.sarif .
+  
+        - name: Upload Semgrep report as artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: semgrep-report
+            path: semgrep-results.sarif
+       
         - name: Check if app is responding
           run: |
            curl http://localhost:8080 || echo "App not responding!"
@@ -108,6 +119,7 @@
         - name: Verify report generation
           run: |
            ls -l $(pwd)/zap-report.html || echo "Report not generated!"   
+       
         # 7. Upload report
 
         - name: Upload ZAP report
