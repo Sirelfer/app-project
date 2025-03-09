@@ -103,7 +103,7 @@
            
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
-            docker run --network host -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html -c /zap/wrk/.zap/rules.tsv || true
+            docker run --network host -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r zap-report.html -c /zap/wrk/.zap/rules.tsv || true
           
         - name: Verify report generation
           run: |
