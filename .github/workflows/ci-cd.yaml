@@ -92,7 +92,7 @@
           run: |
            chmod -R 777 $(pwd)
         
-        - name: Verify zap.conf exists
+        - name: Verify rule file exist
           run: |
            ls -l $(pwd)/zap.conf || echo "zap.conf not found!"
         
@@ -103,7 +103,7 @@
            
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
-            docker run --network host -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html -c /zap/wrk/zap.conf || true
+            docker run --network host -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py -t http://localhost:8080 -r /zap/wrk/zap-report.html -c /zap/wrk/.zap/rules.tsv || true
             
         - name: Verify conf file
           run: |
