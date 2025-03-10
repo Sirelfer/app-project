@@ -94,6 +94,13 @@
           with:
             name: semgrep-report
             path: semgrep-results.sarif
+        - name: Install sarif-to-html
+          run: |
+              npm install -g sarif-to-html
+    
+        - name: Convert SARIF to HTML
+          run: |
+              sarif-to-html semgrep-results.sarif semgrep-results.html
        
         - name: Check if app is responding
           run: |
