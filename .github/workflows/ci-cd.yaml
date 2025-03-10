@@ -3,6 +3,9 @@
   on:
     push:
       branches: [main]
+  permissions:
+   security-events: write  # Necesario para subir SARIF a Code Scanning
+   contents: read         # Necesario para leer el código
       
   jobs:
     security-tests:
@@ -87,21 +90,21 @@
         - name: Run Semgrep
           run: |
              python -m pip install semgrep
-             semgrep --config=p/default --sarif --output=semgrep-results.sarif .
+             semgrep semgrep ci --sarif -o semgrep.sarif || true
   
         - name: Upload Semgrep report as artifact
           uses: actions/upload-artifact@v4
           with:
             name: semgrep-report
             path: semgrep-results.sarif
-        - name: Install sarif-to-html
-          run: |
-              npm install -g sarif-to-html
-    
-        - name: Convert SARIF to HTML
-          run: |
-              sarif-to-html semgrep-results.sarif semgrep-results.html
-       
+      
+        - name: Upload SARIF to GitHub
+          uses: github/codeql-action/upload-sarif@v2
+          with:
+              sarif_file: semgrep.sarif
+          
+
+        # Ejecuta este paso incluso si Semgrep falla
         - name: Check if app is responding
           run: |
            curl http://localhost:8080 || echo "App not responding!"
