@@ -2,7 +2,10 @@
   
   on:
     push:
-      branches: [main]
+      branches: [main, fix-security-headers]
+    pull_request:
+      branches: [main, fix-security-headers]
+
   permissions:
    security-events: write  # Necesario para subir SARIF a Code Scanning
    contents: read         # Necesario para leer el código
