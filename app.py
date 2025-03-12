@@ -23,6 +23,13 @@ def apply_security_headers(response):
     response.headers['Server'] = 'WebServer'
     return response
 
+@app.route('/hello/<name>')
+def hello_name(name):
+    """Ruta que renderiza un saludo personalizado para un nombre dado en la URL."""
+    if not re.match("^[a-zA-Z]+$", name):
+        return "El nombre solo puede contener letras.", 400
+    return render_template('index.html', nombre=name)
+
 @app.route('/')
 def hello():
     nombre = request.args.get('nombre','Usuario')

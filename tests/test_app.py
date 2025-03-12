@@ -12,14 +12,14 @@ def test_hello():
     client = app.test_client()
     response = client.get('/')
     assert response.status_code == 200
-    assert b"Hola, mundo!" in response.data
+    assert b"<h1>Bienvenido, Usuario</h1>" in response.data
 
 # Prueba para la ruta /hello/<name>
 def test_hello_name():
     client = app.test_client()
     response = client.get('/hello/Fer')
     assert response.status_code == 200
-    assert b"Hola, Fer!" in response.data
+    assert b"<h1>Bienvenido, Fer</h1>" in response.data
 
 # Prueba para la ruta /hello/<name> con un nombre inválido
 def test_hello_name_invalid():
