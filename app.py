@@ -7,7 +7,7 @@ app = Flask(__name__)
 def apply_security_headers(response):
     """Agrega encabezados de seguridad a todas las respuestas."""
     # CSP: Solo permite recursos del mismo origen
-    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    response.headers['Content-Security-Policy'] = "default-src 'self'; frame-ancestors 'none'; form-action 'self'"
     # Anti-clickjacking
     response.headers['X-Frame-Options'] = 'DENY'
     # Anti-MIME-sniffing
