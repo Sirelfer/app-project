@@ -2,7 +2,10 @@
   
   on:
     push:
-      branches: [main]
+      branches: [main, fix-security-headers]
+    pull_request:
+      branches: [main, fix-security-headers]
+
   permissions:
    security-events: write  # Necesario para subir SARIF a Code Scanning
    contents: read         # Necesario para leer el código
@@ -78,14 +81,28 @@
           run: |
             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
             trivy image --severity HIGH,CRITICAL app-image:latest
-        
+        # 4.1 Network 
+        - name: Create Docker Network
+          run: docker network create zapnet
         # 5. Iniciar la aplicación y permisos
 
         - name: Start the application
-          run: docker run -d -p 8080:5000 --name app-container app-image:latest
+          run: docker run -d --net zapnet --name app-container -p 5000:5000 app-image:latest
         
-        - name: Wait for application to start
-          run: sleep 10  # Ajusta el tiempo según sea necesario
+        - name: Check if app is responding
+          run: |
+           for i in {1..30}; do
+            if curl -s http://localhost:5000 > /dev/null; then
+              echo "Application is up!"
+              break
+            fi
+            echo "Waiting for application... ($i/30)"
+            sleep 1
+           done
+           if [ $i -eq 30 ]; then
+            echo "Application failed to start!"
+            exit 1
+           fi
         
         - name: Run Semgrep
           run: |
@@ -103,11 +120,11 @@
           with:
             name: semgrep-report
             path: semgrep-results.sarif
-          
+      
         - name: Check if app is responding
           run: |
-           curl http://localhost:8080 || echo "App not responding!"
-        
+              curl http://localhost:5000 || echo "App not responding!"
+          
         - name: Set permissions for workspace
           run: |
            chmod -R 777 $(pwd)
@@ -123,7 +140,7 @@
            
         - name: Run OWASP ZAP Baseline Scan (DAST)
           run: |
-            docker run --network host -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-full-scan.py -t http://localhost:8080 -r zap-report.html -c /zap/wrk/.zap/rules.tsv || true
+            docker run --net zapnet -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-full-scan.py -t http://app-container:5000 -r zap-report.html -c /zap/wrk/.zap/rules.tsv || true
           
         - name: Verify report generation
           run: |
@@ -140,6 +157,9 @@
          # 8. Stop container 
         - name: Stop app container
           run: docker stop app-container
+        - name: Cleanup Docker network
+          if: always()
+          run: docker network rm zapnet || true
   
         # 9. Push image to docker
         - name: Push Docker image (if on main branch)
