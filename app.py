@@ -36,5 +36,5 @@ def hello():
     nombre = request.args.get('nombre','Usuario')
     return render_template('index.html', nombre=nombre)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+##if __name__ == '__main__':
+    ##app.run(host='0.0.0.0', port=5000)
