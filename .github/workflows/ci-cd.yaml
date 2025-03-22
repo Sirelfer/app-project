@@ -167,17 +167,7 @@
         - name: Check if app is responding
           run: |
               curl http://localhost:5000 || echo "App not responding!"
-
-        - name: Run Postman/Newman tests
-          run: |
-            npm install -g newman
-            curl -o postman-collection.json https://raw.githubusercontent.com/Postman-Security-Community/postman-collections/main/OWASP-Top-10.postman_collection.json
-            if ! jq . postman-collection.json >/dev/null 2>&1; then
-              echo "Error: postman-collection.json is not a valid JSON file"
-            exit 1
-            fi
-            newman run postman-collection.json --environment "http://localhost:5000"   
-    
+   
         - name: Set permissions for workspace
           run: |
            chmod -R 755 $(pwd)
@@ -207,8 +197,32 @@
           with:
               name: zap-report
               path: zap-report.html
-       
-         # 8. Stop container 
+    owasp-top10-mapping:
+      runs-on: ubuntu-latest
+      needs: [security-tests, container-scan-and-dast]  # Ejecutar después de los escaneos
+      steps:
+       # 2. Ejecutar la acción alerts-to-owasp10
+        - name: Map Alerts to OWASP Top 10
+          uses: KittyChiu/alerts-to-owasp10@v0.1.2
+          env:
+            ORGANISATION: ${{ github.repository_owner }}  # Nombre de la organización
+            GITHUB_TOKEN: ${{ secrets.ALERTS_TOKEN }}    # Token con permisos security_events
+
+        # 3. Subir el reporte CSV como artefacto
+        - name: Upload OWASP Top 10 Mapping Report
+          uses: actions/upload-artifact@v4
+          with:
+            name: owasp-top10-mapping
+            path: mapping.csv
+
+      # 4. Subir el reporte JSON como artefacto (opcional)
+        - name: Upload All Alerts Report
+          uses: actions/upload-artifact@v4
+          with:
+            name: all-alerts
+            path: alerts.json
+     
+      # 8. Stop container 
         - name: Stop app container
           run: docker stop app-container
         - name: Cleanup Docker network
