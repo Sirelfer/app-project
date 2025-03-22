@@ -1,0 +1,8 @@
+rules:
+  - id: insecure-sql-query
+    patterns:
+      - pattern: $DB.query("SELECT * FROM users WHERE id = " + $INPUT)
+      - pattern-not: $DB.query("SELECT * FROM users WHERE id = ?", ...)
+    message: "Insecure SQL query detected: potential SQL injection"
+    severity: ERROR
+    languages: [python]

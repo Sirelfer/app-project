@@ -1,0 +1,28 @@
+# k8s/app-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+  namespace: default
+spec:
+  replicas: 3  # Número de réplicas (pods) a correr
+  selector:
+    matchLabels:
+      app: flask-app
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      containers:
+      - name: flask-app
+        image: app-image:latest  # Imagen de tu app
+        imagePullPolicy: Never  # Usamos la imagen local
+        ports:
+        - containerPort: 5000
+        readinessProbe:  # Verifica que el pod esté listo
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10

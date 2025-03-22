@@ -45,6 +45,21 @@
           run: |
             pip install bandit
             bandit -r . -f txt -o bandit-report.txt || true
+        
+        - name: Initialize CodeQL
+          uses: github/codeql-action/init@v3
+          with:
+            languages: python
+          
+        - name: Perform CodeQL Analysis
+          uses: github/codeql-action/analyze@v3
+          with:
+            output: codeql-results.sarif
+        - name: Upload CodeQL SARIF to GitHub Code Scanning
+          uses: github/codeql-action/upload-sarif@v3
+          with:
+            sarif_file: codeql-results.sarif
+          if: always()
   
         # 5. Escaneo de dependencias con Safety
         - name: Run Safety (SAST)
@@ -53,11 +68,16 @@
             safety check --full-report
   
         # 6. Pruebas unitarias con Pytest
-        - name: Run Pytest (Pruebas Funcionales)
+        - name: Run Pytest with Coverage (Pruebas Funcionales)
           run: |
-            pip install pytest
-            pytest
-  
+            pip install pytest pytest-cov
+            pytest --cov=./ --cov-report=html
+        - name: Upload Coverage Report
+          uses: actions/upload-artifact@v4
+          with:
+            name: coverage-report
+            path: htmlcov/
+
         # 7. Subir artefactos (reporte de Bandit)
         - name: Upload Bandit report
           uses: actions/upload-artifact@v4
@@ -95,10 +115,14 @@
 
         - name: Create Docker Network
           run: docker network create zapnet
+        
         # 5. Iniciar la aplicación y permisos
 
         - name: Start the application
-          run: docker run -d --net zapnet --name app-container -p 5000:5000 app-image:latest
+          run: docker run -d --net zapnet --name app-container -p 5000:5000 --security-opt seccomp=seccomp.json app-image:latest
+         
+          #OLD #run: docker run -d --net zapnet --name app-container -p 5000:5000 app-image:latest
+
         
         - name: Check if app is responding
           run: |
@@ -118,7 +142,9 @@
         - name: Run Semgrep
           run: |
              python -m pip install semgrep
-             semgrep --config=p/default --sarif --output=semgrep-results.sarif .
+             semgrep --config=semgrep-rules/insecure-sql.yaml --sarif --output=semgrep-results.sarif .
+          
+         ##Oldsemgrep --config=p/default --sarif --output=semgrep-results.sarif .
 
         - name: Upload Semgrep SARIF to GitHub Code Scanning
           uses: github/codeql-action/upload-sarif@v3
@@ -135,10 +161,16 @@
         - name: Check if app is responding
           run: |
               curl http://localhost:5000 || echo "App not responding!"
-          
+
+        - name: Run Postman/Newman tests
+          run: |
+            npm install -g newman
+            curl -o postman-collection.json https://raw.githubusercontent.com/OWASP/OWASP-Top10/main/postman/OWASP-Top10-Collection.json
+            newman run postman-collection.json -e http://localhost:5000        
+    
         - name: Set permissions for workspace
           run: |
-           chmod -R 777 $(pwd)
+           chmod -R 755 $(pwd)
         
         - name: Verify rule file exist
           run: |
@@ -172,9 +204,33 @@
           if: always()
           run: docker network rm zapnet || true
   
-        # 9. Push image to docker
+        - name: Install Cosign
+          uses: sigstore/cosign-installer@v3
+        - name: Sign Docker image with Cosign
+          run: |
+            cosign sign --oidc-issuer=https://token.actions.githubusercontent.com \
+            ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+
+          # 9. Push image to docker
         - name: Push Docker image (if on main branch)
           if: github.ref == 'refs/heads/main'
           run: |
             docker tag app-image:latest ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
             docker push ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+    
+    docker-bench-security:
+      runs-on: ubuntu-latest
+      needs: container-scan-and-dast
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+        - name: Run Docker Bench for Security
+          run: |
+            git clone https://github.com/docker/docker-bench-security.git
+            cd docker-bench-security
+            ./docker-bench-security.sh
+        - name: Upload Docker Bench report
+          uses: actions/upload-artifact@v4
+          with:
+            name: docker-bench-report
+            path: docker-bench-security/output/
