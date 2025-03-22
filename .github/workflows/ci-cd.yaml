@@ -171,8 +171,12 @@
         - name: Run Postman/Newman tests
           run: |
             npm install -g newman
-            curl -o postman-collection.json https://raw.githubusercontent.com/OWASP/OWASP-Top10/main/postman/OWASP-Top10-Collection.json
-            newman run postman-collection.json -e http://localhost:5000        
+            curl -o postman-collection.json https://raw.githubusercontent.com/Postman-Security-Community/postman-collections/main/OWASP-Top-10.postman_collection.json
+            if ! jq . postman-collection.json >/dev/null 2>&1; then
+              echo "Error: postman-collection.json is not a valid JSON file"
+            exit 1
+            fi
+            newman run postman-collection.json --environment "http://localhost:5000"   
     
         - name: Set permissions for workspace
           run: |
