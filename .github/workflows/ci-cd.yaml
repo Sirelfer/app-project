@@ -209,13 +209,40 @@
        # 2. Ejecutar la acción alerts-to-owasp10
 
         - name: Map Alerts to OWASP Top 10 (Manual)
-          run: |                    
-          curl -H "Authorization: Bearer ${{ secrets.ALERTS_TOKEN }}" -H "Accept: application/vnd.github+json" https://api.github.com/repos/${{ github.repository }}/code-scanning/alerts?state=open > alerts.json
+          run: | # Verifica que el token no esté vacío
+            if [ -z "${{ secrets.ALERTS_TOKEN }}" ]; then
+              echo "Error: ALERTS_TOKEN is empty. Please set it in repository secrets."
+              exit 1
+            fi
+          # Imprime la URL para depuración
+            REPO_URL="https://api.github.com/repos/${{ github.repository }}/code-scanning/alerts?state=open"
+            echo "Fetching alerts from: $REPO_URL"
 
-          # Procesa las alertas (esto es un ejemplo simplificado, necesitarías un mapeo CWE -> OWASP Top 10)
-          echo "repo_name,alert_no,risk,cwe_id" > mapping.csv
-          jq -r '.[] | select(.rule.security_severity_level != null) | "\(.repository.full_name),\(.number),A03:2021 – Injection,\(.rule.cwe[0])"' alerts.json >> mapping.csv
-        
+            # Descarga las alertas con manejo de errores
+            curl -f -H "Authorization: Bearer ${{ secrets.ALERTS_TOKEN }}" \
+                -H "Accept: application/vnd.github+json" \
+                "$REPO_URL" > alerts.json || {
+              echo "Error: Failed to fetch alerts. Check the token permissions or repository settings."
+              cat alerts.json
+              exit 1
+            }
+
+            # Verifica si el archivo alerts.json está vacío o no es un JSON válido
+            if ! jq . alerts.json >/dev/null 2>&1; then
+              echo "Error: alerts.json is not a valid JSON file or is empty."
+              cat alerts.json
+              exit 1
+            fi
+
+            # Crea un mapeo básico CWE -> OWASP Top 10
+            echo "repo_name,alert_no,risk,cwe_id" > mapping.csv
+            jq -r '.[] | select(.rule.security_severity_level != null) | 
+              .cwe_id = (.rule.cwe[0] // "unknown") | 
+              .risk = (if .cwe_id == "CWE-89" or .cwe_id == "CWE-79" then "A03:2021 – Injection"
+                      elif .cwe_id == "CWE-287" then "A02:2021 – Broken Authentication"
+                      elif .cwe_id == "CWE-732" then "A01:2021 – Broken Access Control"
+                      else "Unknown OWASP Category" end) | 
+              "\(.repository.full_name),\(.number),\(.risk),\(.cwe_id)"' alerts.json >> mapping.csv
       # 3. Subir el reporte CSV como artefacto
         - name: Upload OWASP Top 10 Mapping Report
           uses: actions/upload-artifact@v4
