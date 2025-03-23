@@ -204,7 +204,7 @@
       steps:
        # 2. Ejecutar la acción alerts-to-owasp10
         - name: Map Alerts to OWASP Top 10
-          uses: KittyChiu/alerts-to-owasp10@v0.2.0
+          uses: KittyChiu/alerts-to-owasp10@v0.1.2|
           env:
             ORGANISATION: ${{ github.repository_owner }}  # Nombre de la organización
             GITHUB_TOKEN: ${{ secrets.ALERTS_TOKEN }}    # Token con permisos security_events
