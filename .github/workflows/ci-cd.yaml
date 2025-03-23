@@ -9,7 +9,7 @@
   permissions:
    security-events: write  # Necesario para subir SARIF a Code Scanning
    contents: read         # Necesario para leer el código
-      
+   id-token: write        # Necesario para que Cosign use el flujo OIDC   
   jobs:
     security-tests:
       runs-on: ubuntu-latest
@@ -197,6 +197,7 @@
           with:
               name: zap-report
               path: zap-report.html
+        
         # 8. Stop container 
         - name: Stop app container
           run: docker stop app-container
@@ -206,17 +207,18 @@
   
         - name: Install Cosign
           uses: sigstore/cosign-installer@v3
+
         - name: Sign Docker image with Cosign
           run: |
-            cosign sign --oidc-issuer=https://token.actions.githubusercontent.com \
-            ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+           cosign sign --oidc-issuer=https://token.actions.githubusercontent.com --oidc-client-id=sts.amazonaws.com --yes --allow-insecure-registry ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+           env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # 9. Push image to docker
         - name: Push Docker image (if on main branch)
           if: github.ref == 'refs/heads/main'
           run: |
-            docker tag app-image:latest ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
-            docker push ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+           docker tag app-image:latest ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
 
     owasp-top10-mapping:
       runs-on: ubuntu-latest
