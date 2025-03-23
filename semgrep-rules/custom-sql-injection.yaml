@@ -1,0 +1,8 @@
+# semgrep-rules/custom-sql-injection.yaml
+rules:
+  - id: custom-sql-injection
+    patterns:
+      - pattern: $DB.execute("... WHERE $X = " + $Y)
+        message: "Potential SQL Injection: Avoid concatenating user input directly into SQL queries."
+        severity: ERROR
+        languages: [python]
