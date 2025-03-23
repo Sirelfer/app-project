@@ -205,14 +205,20 @@
         - name: Checkout
           id: checkout
           uses: actions/checkout@v4
-       # 2. Ejecutar la acción alerts-to-owasp10
-        - name: Map Alerts to OWASP Top 10
-          uses: KittyChiu/alerts-to-owasp10@v0.1.2
-          env:
-            ORGANISATION: ${{ github.repository_owner }}  # Nombre de la organización
-            GITHUB_TOKEN: ${{ secrets.ALERTS_TOKEN }}    # Token con permisos security_events
 
-        # 3. Subir el reporte CSV como artefacto
+       # 2. Ejecutar la acción alerts-to-owasp10
+       
+        - name: Map Alerts to OWASP Top 10 (Manual)
+          run: |                    
+          curl -H "Authorization: Bearer ${{ secrets.ALERTS_TOKEN }}" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/code-scanning/alerts?state=open > alerts.json
+
+          # Procesa las alertas (esto es un ejemplo simplificado, necesitarías un mapeo CWE -> OWASP Top 10)
+          echo "repo_name,alert_no,risk,cwe_id" > mapping.csv
+          jq -r '.[] | select(.rule.security_severity_level != null) | "\(.repository.full_name),\(.number),A03:2021 – Injection,\(.rule.cwe[0])"' alerts.json >> mapping.csv
+        
+      # 3. Subir el reporte CSV como artefacto
         - name: Upload OWASP Top 10 Mapping Report
           uses: actions/upload-artifact@v4
           with:
