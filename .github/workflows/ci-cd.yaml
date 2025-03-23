@@ -211,8 +211,8 @@
         - name: Sign Docker image with Cosign
           run: |
            cosign sign --oidc-issuer=https://token.actions.githubusercontent.com --oidc-client-id=sts.amazonaws.com --yes --allow-insecure-registry ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
-           env:
-           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          env:
+             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         - name: Push Docker image (if on main branch)
           if: github.ref == 'refs/heads/main'
