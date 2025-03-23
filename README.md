@@ -298,7 +298,7 @@ This project incorporates several security improvements, following DevSecOps bes
 Added
 * Security headers middleware in app.py to mitigate common web vulnerabilities.
 * /hello/<name> route with name validation using regex.
-* templates/index.html for rendering dynamic greetings.
+* templates/index.html for rendering dynamic greetings. 
 * Semgrep and OWASP ZAP scans in the CI/CD pipeline.
 * Unit tests for root and dynamic routes with input validation.
 
