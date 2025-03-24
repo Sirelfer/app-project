@@ -69,7 +69,7 @@
         - name: Run Safety (SAST)
           run: |
             pip install safety
-            safety check --full-report
+            safety scan --full-report
   
         # 6. Pruebas unitarias con Pytest
         - name: Run Pytest with Coverage (Pruebas Funcionales)
