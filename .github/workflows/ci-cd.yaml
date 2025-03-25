@@ -140,7 +140,6 @@
          
           #OLD #run: docker run -d --net zapnet --name app-container -p 5000:5000 app-image:latest
 
-        
         - name: Check if app is responding
           run: |
            for i in {1..30}; do
@@ -221,11 +220,14 @@
         - name: Install Cosign
           uses: sigstore/cosign-installer@v3
 
-        - name: Sign Docker image with Cosign
+        - name: Sign Docker image with Docker Content Trust
           run: |
-           cosign sign --oidc-issuer=https://token.actions.githubusercontent.com --oidc-client-id=sts.amazonaws.com --yes --allow-insecure-registry ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+            echo "${{ secrets.DOCKER_TRUST_PASSPHRASE }}" | docker trust key load --name signer -p - > /dev/null
+            echo "${{ secrets.DOCKER_TRUST_PASSPHRASE }}" | docker trust sign ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
           env:
-             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            DOCKER_CONTENT_TRUST: 1
+            DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE: ${{ secrets.DOCKER_TRUST_PASSPHRASE }}
+            DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_TRUST_PASSPHRASE }}
 
         - name: Push Docker image (if on main branch)
           if: github.ref == 'refs/heads/main'
