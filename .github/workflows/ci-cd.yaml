@@ -221,9 +221,10 @@
           uses: sigstore/cosign-installer@v3
 
         - name: Sign Docker image with Docker Content Trust
-          run: |
-            echo "${{ secrets.DOCKER_TRUST_PASSPHRASE }}" | docker trust key load --name signer -p - > /dev/null
-            echo "${{ secrets.DOCKER_TRUST_PASSPHRASE }}" | docker trust sign ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+          run: |  
+            echo "${{ secrets.DOCKER_TRUST_PRIVATE_KEY }}" > signer.key
+            docker trust key load --name signer signer.key
+            docker trust sign ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
           env:
             DOCKER_CONTENT_TRUST: 1
             DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE: ${{ secrets.DOCKER_TRUST_PASSPHRASE }}
@@ -232,8 +233,8 @@
         - name: Push Docker image (if on main branch)
           if: github.ref == 'refs/heads/main'
           run: |
-           docker tag app-image:latest ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
-           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+            docker tag app-image:latest ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+            docker push ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
 
     owasp-top10-mapping:
       runs-on: ubuntu-latest
