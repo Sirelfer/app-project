@@ -222,6 +222,7 @@
 
         - name: Sign Docker image with Docker Content Trust
           run: |  
+
             echo "${{ secrets.DOCKER_TRUST_PRIVATE_KEY }}" > signer.key
             if [ ! -s signer.key ]; then
               echo "Error: signer.key is empty or does not exist. Check the DOCKER_TRUST_PRIVATE_KEY secret."
@@ -229,11 +230,19 @@
             fi
             ls -l signer.key
             chmod 600 signer.key
+
             docker trust key load --name signer signer.key || {
               echo "Error: Failed to load key. Check the DOCKER_TRUST_PASSPHRASE secret."
               exit 1
             }
 
+            echo "Listing available Docker images:"
+            docker images
+            
+            if ! docker image inspect ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest > /dev/null 2>&1; then
+              echo "Error: Image ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest not found."
+            exit 1
+            fi
             docker trust sign ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest || {
               echo "Error: Failed to sign the image. Check Docker Hub permissions and image name."
               exit 1
