@@ -110,6 +110,10 @@
         - name: Build Docker image
           run: docker build --no-cache -t app-image:latest -f Dockerfile.app .
         
+        - name: Tag Docker image for Docker Hub
+          run: |
+            docker tag app-image:latest ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+        
         - name: Scan Docker image with Dockle
           run: |
             VERSION=$(
@@ -222,7 +226,7 @@
 
         - name: Sign Docker image with Docker Content Trust
           run: |  
-
+        
             echo "${{ secrets.DOCKER_TRUST_PRIVATE_KEY }}" > signer.key
             if [ ! -s signer.key ]; then
               echo "Error: signer.key is empty or does not exist. Check the DOCKER_TRUST_PRIVATE_KEY secret."
@@ -238,7 +242,7 @@
 
             echo "Listing available Docker images:"
             docker images
-            
+
             if ! docker image inspect ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest > /dev/null 2>&1; then
               echo "Error: Image ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest not found."
             exit 1
