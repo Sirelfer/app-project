@@ -223,6 +223,11 @@
         - name: Sign Docker image with Docker Content Trust
           run: |  
             echo "${{ secrets.DOCKER_TRUST_PRIVATE_KEY }}" > signer.key
+            if [ ! -s signer.key ]; then
+            echo "Error: signer.key is empty or does not exist. Check the DOCKER_TRUST_PRIVATE_KEY secret."
+            exit 1
+            fi
+            chmod 600 signer.key
             docker trust key load --name signer signer.key
             docker trust sign ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
           env:
