@@ -180,19 +180,19 @@
             name: semgrep-report
             path: semgrep-results.sarif
       
-        - name: Check if app is responding
-          run: |
-              curl http://localhost:5000 || echo "App not responding!"
-   
-        - name: Set permissions for workspace
-          run: |
-           chmod -R 755 $(pwd)
-        
         - name: Verify rule file exist
           run: |
            ls -l semgrep-results.sarif || echo "Semgrep SARIF file not generated!"
+
           ##ls -l $(pwd)/.zap/rules.tsv || echo "Rules.tsv not found!"
+        - name: Check if app is responding
+          run: |
+              curl http://localhost:5000 || echo "App not responding!"
         
+        - name: Set permissions for workspace
+          run: |
+           chmod -R 755 $(pwd)
+
         - name: Test volume mapping
           run: |
            docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest touch /zap/wrk/test.txt || echo "Touch failed!"
@@ -214,53 +214,38 @@
               name: zap-report
               path: zap-report.html
         
-        # 8. Stop container 
-        - name: Stop app container
-          run: docker stop app-container
-        - name: Cleanup Docker network
-          if: always()
-          run: docker network rm zapnet || true
-  
-        - name: Install Cosign
-          uses: sigstore/cosign-installer@v3
-
         - name: Sign Docker image with Docker Content Trust
           run: |  
-        
-            echo "${{ secrets.DOCKER_TRUST_PRIVATE_KEY }}" > signer.key
-            if [ ! -s signer.key ]; then
-              echo "Error: signer.key is empty or does not exist. Check the DOCKER_TRUST_PRIVATE_KEY secret."
-            exit 1
-            fi
-            ls -l signer.key
-            chmod 600 signer.key
-
-            docker trust key load --name signer signer.key || {
-              echo "Error: Failed to load key. Check the DOCKER_TRUST_PASSPHRASE secret."
-              exit 1
-            }
-
-            echo "Listing available Docker images:"
-            docker images
-
-            if ! docker image inspect ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest > /dev/null 2>&1; then
-              echo "Error: Image ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest not found."
-            exit 1
-            fi
-            docker trust sign ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest || {
-              echo "Error: Failed to sign the image. Check Docker Hub permissions and image name."
+          
+            cosign sign --yes docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest || {
+              echo "Error: Failed to sign the image with Cosign."
               exit 1
             }
           env:
-            DOCKER_CONTENT_TRUST: 1
-            DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE: ${{ secrets.DOCKER_TRUST_PASSPHRASE }}
-            DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_TRUST_PASSPHRASE }}
+          COSIGN_EXPERIMENTAL: 1  # Habilita el modo experimental para usar Rekor
 
+        
         - name: Push Docker image (if on main branch)
           if: github.ref == 'refs/heads/main'
           run: |
             docker tag app-image:latest ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
             docker push ${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest
+        
+        - name: Stop app container
+          if: always()
+          run: |
+            docker stop app-container || true
+            docker rm app-container || true
+
+        - name: Cleanup Docker network
+          if: always()
+          run: |
+            docker network rm zapnet || true
+
+        - name: Clean up Docker images
+          if: always()
+          run: |
+            docker image prune -f || true
 
     owasp-top10-mapping:
       runs-on: ubuntu-latest
