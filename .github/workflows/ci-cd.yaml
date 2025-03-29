@@ -218,14 +218,21 @@
           uses: sigstore/cosign-installer@v3
 
         - name: Sign Docker image with Docker Content Trust
-          run: |  
-          
-            cosign sign --yes docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest || {
+          run: |       
+            echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key           
+            if [ ! -s cosign.key ]; then
+              echo "Error: cosign.key is empty or does not exist. Check the COSIGN_PRIVATE_KEY secret."
+              exit 1
+            fi
+            
+            chmod 600 cosign.key
+            
+            echo "${{ secrets.COSIGN_PASSWORD }}" | cosign sign --key cosign.key docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest || {
               echo "Error: Failed to sign the image with Cosign."
               exit 1
             }
           env:
-            COSIGN_EXPERIMENTAL: 1  # Habilita el modo experimental para usar Rekor
+            COSIGN_EXPERIMENTAL: 0
 
         
         - name: Push Docker image (if on main branch)
@@ -278,8 +285,7 @@
               cat alerts.json
               exit 1
             }
-
-            
+ 
             if ! jq . alerts.json >/dev/null 2>&1; then
               echo "Error: alerts.json is not a valid JSON file or is empty."
               cat alerts.json
