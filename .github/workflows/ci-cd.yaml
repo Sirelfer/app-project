@@ -219,6 +219,7 @@
 
         - name: Sign Docker image with Docker Content Trust
           run: |       
+            
             echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key           
             if [ ! -s cosign.key ]; then
               echo "Error: cosign.key is empty or does not exist. Check the COSIGN_PRIVATE_KEY secret."
@@ -226,11 +227,18 @@
             fi
             
             chmod 600 cosign.key
+            ls -l cosign.key
             
-            echo "${{ secrets.COSIGN_PASSWORD }}" | cosign sign --key cosign.key docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest || {
-              echo "Error: Failed to sign the image with Cosign."
+            if [ -z "${{ secrets.COSIGN_PASSWORD }}" ]; then
+              echo "Error: COSIGN_PASSWORD is empty. Check the COSIGN_PASSWORD secret."
               exit 1
+            fi
+
+            echo "${{ secrets.COSIGN_PASSWORD }}" | cosign sign --key cosign.key docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/app-image:latest || {
+            echo "Error: Failed to sign the image with Cosign."
+            exit 1
             }
+            
           env:
             COSIGN_EXPERIMENTAL: 0
 
