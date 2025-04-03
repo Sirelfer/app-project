@@ -29,8 +29,7 @@
         - name: Install dependencies
           run: |
             python -m pip install --upgrade pip
-            pip install -r requirements.txt
-            pip install gunicorn
+            pip install -r requirements.txt gunicorn bandit safety pytest pytest-cov requests semgrep
 
         - name: Run Gunicorn
           run: |
@@ -43,7 +42,6 @@
         # 4. Escaneo SAST con Bandit
         - name: Run Bandit (SAST)
           run: |
-            pip install bandit
             bandit -r . -f txt -o bandit-report.txt -c .bandit || true
 
         #bandit -r . -f txt -o bandit-report.txt || true
@@ -68,13 +66,11 @@
         # 5. Escaneo de dependencias con Safety
         - name: Run Safety (SAST)
           run: |
-            pip install safety
             safety check --full-report
   
         # 6. Pruebas unitarias con Pytest
         - name: Run Pytest with Coverage (Pruebas Funcionales)
-          run: |
-            pip install pytest pytest-cov requests 
+          run: | 
             pytest --cov=./ --cov-report=html tests/ || true
             
         - name: Upload Coverage Report
@@ -161,8 +157,7 @@
         
         - name: Run Semgrep
           run: |
-            python -m pip install semgrep
-              semgrep --config=semgrep-rules/custom-sql-injection.yaml --config=semgrep-rules/insecure-sql.yaml --sarif --output=semgrep-results.sarif . || {
+            semgrep --config=semgrep-rules/custom-sql-injection.yaml --config=semgrep-rules/insecure-sql.yaml --sarif --output=semgrep-results.sarif . || {
                 echo "Semgrep failed, creating empty SARIF file"
                 echo '{"version": "2.1.0", "runs": [{"tool": {"driver": {"name": "Semgrep", "version": "1.0.0"}}, "results": []}]}' > semgrep-results.sarif
               }
